@@ -1,17 +1,3 @@
-/*!
- * eXeLearning v4+ Style Script File
- * -----------------------
- * Author: Ignacio Gros for eXeLearning
- * Project: exelearning.net
- *
- * This JavaScript file is part of a style for eXeLearning.
- * Licensed under Creative Commons Attribution-ShareAlike (CC BY-SA).
- *
- * Note: The style's config.xml contains additional information
- *       about materials (images) created by third parties
- *       and included in this style.
- */
-
 var myTheme = {
     init: function () {
         // Common functions
@@ -61,7 +47,6 @@ var myTheme = {
                         myTheme.params('add');
                     }
                 }
-                window.scroll(0, 0);
             } else {
                 $('body').toggleClass('siteNav-off');
                 myTheme.params(
@@ -82,20 +67,20 @@ var myTheme = {
                 }
                 bar.show();
                 $('#exe-client-search-text').focus();
-                window.scroll(0, 0);
             }
             $(this).attr('aria-expanded', bar.is(':visible'));
         });
-        if (!this.inIframe()) {
-            // Fixed navigation
-            $('#siteNav').wrap('<div id="sidebar-nav"></div>');
+        // Fixed navigation
+        $('#siteNav').wrap('<div id="sidebar-nav"></div>');
+        myTheme.checkNav();
+        $(window).bind('resize', function () {
             myTheme.checkNav();
-            $(window).bind('resize', function () {
-                myTheme.checkNav();
-            });
-        }
+        });
         // Search form
         this.searchForm();
+
+        // mover .page-title dentro de .page-content
+        this.movePageTitle();
     },
     inIframe: function () {
         try {
@@ -108,7 +93,7 @@ var myTheme = {
         $('#exe-client-search-text').attr('class', 'form-control');
     },
     isLowRes: function () {
-        return $('#siteNav').css('float') == 'none';
+        return $('#siteNav').css('position') == 'static';
     },
     checkNav: function () {
         var wrapper = $('#sidebar-nav');
@@ -131,10 +116,43 @@ var myTheme = {
             );
         });
     },
+
+    // function that move the h2 outside the header
+    movePageTitle: function () {
+        const tryMove = () => {
+            const $header = $('.main-header .page-header');
+            const $title = $header.find('.page-title').first();
+
+            // Search container of content
+            let $content = $('.page-content').first();
+            if (!$content.length)
+                $content = $('.content, main .content').first();
+            if (!$content.length) $content = $('#main, #content').first();
+            if (!$content.length && $header.length)
+                $content = $header.nextAll(':not(header)').first();
+            if (!$content.length && $header.length) $content = $header.parent();
+
+            if ($header.length && $title.length && $content.length) {
+                $content.prepend($title); // move it to the start
+                return true;
+            }
+            return false;
+        };
+
+        if (tryMove()) return;
+
+        const observer = new MutationObserver(() => {
+            if (tryMove()) observer.disconnect();
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    },
+    // 🔼
 };
+
 $(function () {
     myTheme.init();
 });
+
 $.fn.isInViewport = function () {
     var elementTop = $(this).offset().top;
     var elementBottom = elementTop + $(this).outerHeight();
